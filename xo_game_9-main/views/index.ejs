@@ -1,0 +1,101 @@
+ <!-- כולל את העיצוב בהאדר  -->
+<%- include("header.ejs") %> 
+<center>
+    <h1>X-O game</h1>
+    <h2>I am player <%= timesShown %> </h2> <!-- מקבל את המשתנה טיימשואנ מדף השרת שמהווה את המתשמש שאני משחק -->
+    <table>
+        <tr>
+            <td id="1" onclick="sendMove(this);"></td>
+            <td id="2" onclick="sendMove(this);"></td>
+            <td id="3" onclick="sendMove(this);"></td>
+        </tr>
+        <tr>
+            <td id="4" onclick="sendMove(this);"></td>
+            <td id="5" onclick="sendMove(this);"></td>
+            <td id="6" onclick="sendMove(this);"></td>
+        </tr>
+        <tr>
+            <td id="7" onclick="sendMove(this);"></td>
+            <td id="8" onclick="sendMove(this);"></td>
+            <td id="9" onclick="sendMove(this);"></td>
+        </tr>
+    </table>
+    <div id="winningText">
+</center>
+    </div>
+    <br><br>
+    <script>
+    var currInterval;
+    var player= <%= timesShown %>;
+    StartCheckingStatus();
+
+    function SetP1(cell){
+        document.getElementById(cell).classList.add("p1");
+    }
+    function SetP2(cell){
+        document.getElementById(cell).classList.add("p2");
+    }
+    async function sendMove(el){
+        let cell=el.id;
+        console.log("cell sent ", cell);
+        let response = await fetch(`/GetMove/${player}/${cell}`);
+        let data = await response.json();
+        if(data.player%2==1){
+            SetP1(data.cell);
+        } else{
+            SetP2(data.cell);
+        }
+    }
+    async function fetchLast() {
+        let response = await fetch('/GetLast');
+        let data = await response.json();
+        console.log(data);
+        if(data.player != null){
+            if(data.player%2==1){
+                SetP1(data.cell);
+            } else{
+                SetP2(data.cell);
+            }
+            
+            // Check win
+            if (data.GameFinished==1)
+            {
+                console.log("player 1 won");
+                t = document.getElementById("winningText");
+                t.innerHTML = "Player 1 won";
+                StopGetStatus();
+                return;
+            }
+
+            else if (data.GameFinished==2)
+            {
+                console.log("player 2 won");
+                t = document.getElementById("winningText");
+                t.innerHTML = "Player 2 won";
+                StopGetStatus();
+                return;
+            }
+
+            else if (data.GameFinished==-1)
+            {
+                console.log("tie");
+                t = document.getElementById("winningText");
+                t.innerHTML = "its tie";
+                StopGetStatus();
+                return;
+            }
+            // if(data.player != player){//my turn
+            //     StopGetStatus();
+            // }
+        }
+    }
+    function StartCheckingStatus(){
+        currInterval=setInterval(fetchLast,500);
+    }
+    function StopGetStatus(){
+        clearInterval(currInterval);
+    }
+    </script>
+    </body>
+    </html>
+    
